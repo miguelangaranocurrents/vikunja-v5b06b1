@@ -130,12 +130,16 @@ export function AuthenticatedHTTPFactory() {
 			return Promise.reject(error)
 		}
 
-		// Retry the original request with the new token.
+		// Retry the original request with the new token. The config's data has
+		// already been transformed by the request interceptors and serialized by
+		// axios, so replaying it through this instance would run those
+		// interceptors on a string body (e.g. BucketService.beforeUpdate throws).
+		// Send the already-prepared config through the bare axios client instead.
 		originalRequest.headers = {
 			...originalRequest.headers,
 			Authorization: `Bearer ${newToken}`,
 		}
-		return instance.request(originalRequest)
+		return axios.request(originalRequest)
 	})
 
 	return instance
